@@ -40,6 +40,8 @@
 	var/anotherServer = "unknown"
 	var/redirect_if_full = null
 
+	var/admin_legacy_system = 0	//Defines whether the server uses the legacy admin system with admins.txt or the SQL system. Config option in config.txt
+
 	var/list/mode_names = list()
 	var/list/modes = list()				// allowed modes
 	var/list/votable_modes = list()		// votable modes
@@ -138,6 +140,9 @@
 			switch (name)
 				if ("log_ooc")
 					config.log_ooc = 1
+
+				if ("admin_legacy_system")
+					config.admin_legacy_system = 1
 
 				if ("log_access")
 					config.log_access = 1

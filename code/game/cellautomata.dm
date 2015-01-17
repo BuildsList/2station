@@ -22,24 +22,49 @@
 
 
 /world/proc/load_admins()
-	var/text = file2text("config/admins.txt")
-	if (!text)
-		diary << "Failed to load config/admins.txt\n"
+	if(config.admin_legacy_system)
+		var/text = file2text("config/admins.txt")
+		if (!text)
+			diary << "Failed to load config/admins.txt\n"
+		else
+			var/list/lines = dd_text2list(text, "\n")
+			for(var/line in lines)
+				if (!line)
+					continue
+
+				if (copytext(line, 1, 2) == ";")
+					continue
+
+				var/pos = findtext(line, " - ", 1, null)
+				if (pos)
+					var/m_key = copytext(line, 1, pos)
+					var/a_lev = copytext(line, pos + 3, length(line) + 1)
+					admins[m_key] = a_lev
 	else
-		var/list/lines = dd_text2list(text, "\n")
-		for(var/line in lines)
-			if (!line)
-				continue
+		var/DBConnection/dbcon = new()
+		var/DBQuery/my_query = dbcon.NewQuery("SELECT * FROM `admins`")
+		if(my_query.Execute())
+			while(my_query.NextRow())
+				var/list/row  = my_query.GetRowData()
+				var/rank = world.convert_ranks(text2num(row["rank"]))
+				diary << ("ADMIN: [row["ckey"]] = [rank]")
+				admins[row["ckey"]] = rank
+		if (!admins)
+			diary << "Failed to load admins \n"
+			config.admin_legacy_system = 1
+			load_admins()
 
-			if (copytext(line, 1, 2) == ";")
-				continue
 
-			var/pos = findtext(line, " - ", 1, null)
-			if (pos)
-				var/m_key = copytext(line, 1, pos)
-				var/a_lev = copytext(line, pos + 3, length(line) + 1)
-				admins[m_key] = a_lev
-
+/world/proc/convert_ranks(var/nym as num)
+	switch(nym)
+		if(0) return 0
+		if(1) return "Moderator"
+		if(2) return "Administrator"
+		if(3) return "Primary Administrator"
+		if(4) return "Super Administrator"
+		if(5) return "Coder"
+		if(6) return "Host"
+		else  return 0
 
 /world/proc/load_configuration()
 	config = new /datum/configuration()
