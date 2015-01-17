@@ -58,12 +58,12 @@
 /world/proc/convert_ranks(var/nym as num)
 	switch(nym)
 		if(0) return 0
-		if(1) return "Moderator"
-		if(2) return "Administrator"
-		if(3) return "Primary Administrator"
-		if(4) return "Super Administrator"
-		if(5) return "Coder"
-		if(6) return "Host"
+		if(1) return "Temporary Admin"
+		if(2) return "Admin Candidate"
+		if(3) return "Trial Admin"
+		if(4) return "Badmin"
+		if(5) return "Game Admin"
+		if(6) return "Game Master"
 		else  return 0
 
 /world/proc/load_configuration()
