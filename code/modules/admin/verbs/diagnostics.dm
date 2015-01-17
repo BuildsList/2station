@@ -161,27 +161,38 @@
 			return
 
 		message_admins("[usr] manually reloaded admins.txt")
-		usr << "You reload admins.txt"
-		var/text = file2text("config/admins.txt")
-		if (!text)
-			diary << "Failed to reload config/admins.txt\n"
+		usr << "You reload admins!"
+		if(config.admin_legacy_system)
+			var/text = file2text("config/admins.txt")
+			if (!text)
+				diary << "Failed to load config/admins.txt\n"
+			else
+				var/list/lines = dd_text2list(text, "\n")
+				for(var/line in lines)
+					if (!line)
+						continue
+
+					if (copytext(line, 1, 2) == ";")
+						continue
+
+					var/pos = findtext(line, " - ", 1, null)
+					if (pos)
+						var/m_key = copytext(line, 1, pos)
+						var/a_lev = copytext(line, pos + 3, length(line) + 1)
+						admins[m_key] = a_lev
 		else
-			var/list/lines = dd_text2list(text, "\n")
-			for(var/line in lines)
-				if (!line)
-					continue
-
-				if (copytext(line, 1, 2) == ";")
-					continue
-
-				var/pos = findtext(line, " - ", 1, null)
-				if (pos)
-					var/m_key = copytext(line, 1, pos)
-					var/a_lev = copytext(line, pos + 3, length(line) + 1)
-					admins[m_key] = a_lev
-					diary << ("ADMIN: [m_key] = [a_lev]")
-		//feedback_add_details("admin_verb","RLDA") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-
+			var/DBConnection/dbcon = new()
+			var/DBQuery/my_query = dbcon.NewQuery("SELECT * FROM `admins`")
+			if(my_query.Execute())
+				while(my_query.NextRow())
+					var/list/row  = my_query.GetRowData()
+					var/rank = world.convert_ranks(text2num(row["rank"]))
+					diary << ("ADMIN: [row["ckey"]] = [rank]")
+					admins[row["ckey"]] = rank
+			if (!admins)
+				diary << "Failed to load admins \n"
+				config.admin_legacy_system = 1
+				reload_admins()
 
 	/*jump_to_dead_group()
 		set name = "Jump to dead group"
